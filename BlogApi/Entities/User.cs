@@ -6,4 +6,6 @@ public class User
     public string Name { get; set; }
     public required string Username { get; set; }
     public string PasswordHash { get; set; }
+
+    public virtual List<Blog> Blogs { get; set; }
 }
