@@ -1,5 +1,6 @@
 using BlogApi.Context;
 using BlogApi.Extensions;
+using BlogApi.Managers.BlogManagers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -42,6 +43,7 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDb"));
 });
 builder.Services.AddIdentity(builder.Configuration);
+builder.Services.AddScoped<BlogManager>();
 
 var app = builder.Build();
 

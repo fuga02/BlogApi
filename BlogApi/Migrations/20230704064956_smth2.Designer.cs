@@ -3,6 +3,7 @@ using System;
 using BlogApi.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BlogApi.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    partial class BlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230704064956_smth2")]
+    partial class smth2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,27 +54,6 @@ namespace BlogApi.Migrations
                     b.ToTable("Blogs");
                 });
 
-            modelBuilder.Entity("BlogApi.Entities.Like", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Likes");
-                });
-
             modelBuilder.Entity("BlogApi.Entities.Post", b =>
                 {
                     b.Property<Guid>("PostId")
@@ -100,27 +82,6 @@ namespace BlogApi.Migrations
                     b.HasIndex("BlogId");
 
                     b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("BlogApi.Entities.SavedPost", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SavedPosts");
                 });
 
             modelBuilder.Entity("BlogApi.Entities.User", b =>
@@ -157,25 +118,6 @@ namespace BlogApi.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BlogApi.Entities.Like", b =>
-                {
-                    b.HasOne("BlogApi.Entities.Post", "Post")
-                        .WithMany("Likes")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BlogApi.Entities.User", "User")
-                        .WithMany("Likes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BlogApi.Entities.Post", b =>
                 {
                     b.HasOne("BlogApi.Entities.Blog", "Blog")
@@ -187,44 +129,14 @@ namespace BlogApi.Migrations
                     b.Navigation("Blog");
                 });
 
-            modelBuilder.Entity("BlogApi.Entities.SavedPost", b =>
-                {
-                    b.HasOne("BlogApi.Entities.Post", "Post")
-                        .WithMany("SavedPosts")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BlogApi.Entities.User", "User")
-                        .WithMany("SavedPosts")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BlogApi.Entities.Blog", b =>
                 {
                     b.Navigation("Posts");
                 });
 
-            modelBuilder.Entity("BlogApi.Entities.Post", b =>
-                {
-                    b.Navigation("Likes");
-
-                    b.Navigation("SavedPosts");
-                });
-
             modelBuilder.Entity("BlogApi.Entities.User", b =>
                 {
                     b.Navigation("Blogs");
-
-                    b.Navigation("Likes");
-
-                    b.Navigation("SavedPosts");
                 });
 #pragma warning restore 612, 618
         }

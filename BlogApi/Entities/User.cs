@@ -8,4 +8,6 @@ public class User
     public string PasswordHash { get; set; }
 
     public virtual List<Blog> Blogs { get; set; }
+    public virtual List<Like> Likes { get; set; }
+    public virtual List<SavedPost> SavedPosts { get; set; }
 }

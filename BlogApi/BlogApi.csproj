@@ -26,9 +26,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Managers\BlogManager\" />
-    <Folder Include="Models\BlogModels\" />
-  </ItemGroup>
-
 </Project>
