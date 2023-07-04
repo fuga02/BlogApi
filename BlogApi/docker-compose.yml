@@ -1,0 +1,23 @@
+﻿version: '3.7'
+
+services:
+  blog:
+    image: blog
+    container_name: blog
+    depends_on:
+        - blog_db
+    build:
+        context: .
+        dockerfile: Dockerfile
+    ports:
+        - '3030:80'
+  blog_db:
+    image: postgres:latest
+    container_name: blog_db
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - blog_db_data:/var/lib/postgresql/data/

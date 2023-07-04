@@ -1,11 +1,10 @@
 ﻿using BlogApi.Context;
 using BlogApi.Entities;
-using BlogApi.Managers.Identity;
 using BlogApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlogApi.Managers;
+namespace BlogApi.Managers.Identity;
 
 public class UserManager
 {
