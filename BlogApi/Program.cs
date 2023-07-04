@@ -44,6 +44,7 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
 });
 builder.Services.AddIdentity(builder.Configuration);
 builder.Services.AddScoped<BlogManager>();
+builder.Services.AddScoped<PostManager>();
 
 var app = builder.Build();
 

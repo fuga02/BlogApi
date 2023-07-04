@@ -141,6 +141,7 @@ public class PostManager
             Description = model.Description,
             CreatedDate = model.CreatedDate,
             Likes = model.Likes,
+            BlogId = model.BlogId,
             SavedPosts = model.SavedPosts
         };
 
