@@ -1,5 +1,6 @@
 ﻿using BlogApi.Managers.Identity;
 using BlogApi.Models;
+using BlogApi.Models.IdentityModels;
 using BlogApi.Providers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

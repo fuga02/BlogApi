@@ -1,7 +1,6 @@
-﻿
-using BlogApi.Entities;
+﻿using BlogApi.Entities;
 
-namespace BlogApi.Models;
+namespace BlogApi.Models.IdentityModels;
 
 public class UserModel
 {

@@ -1,6 +1,7 @@
 ﻿using BlogApi.Context;
 using BlogApi.Entities;
 using BlogApi.Models;
+using BlogApi.Models.IdentityModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

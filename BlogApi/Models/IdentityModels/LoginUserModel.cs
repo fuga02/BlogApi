@@ -1,4 +1,4 @@
-﻿namespace BlogApi.Models;
+﻿namespace BlogApi.Models.IdentityModels;
 
 public class LoginUserModel
 {
