@@ -30,7 +30,13 @@ public class BlogManager
 
     public async Task<List<BlogModel>> GetBlogByAuthor(Guid userId)
     {
-        var blogs =  await _dbContext.Blogs.Where(b => b.UserId == userId).ToListAsync();
+        IQueryable<Blog> query =  _dbContext.Blogs.Where(b => b.UserId == userId);
+
+        query = query.OrderByDescending(b => b.CreatedDate);
+        query = query.Where(b => b.CreatedDate > DateTime.Now);
+
+		var blogs = await query.ToListAsync();
+
         if (blogs == null) throw new Exception("Not found");
 
         return  ParseList(blogs);
