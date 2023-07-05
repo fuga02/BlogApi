@@ -17,11 +17,46 @@ public class BlogsController : ControllerBase
         _blogManager = blogManager;
     }
 
+    public record Pagination(int Page, int Count);
+
+    public record BlogFilter(
+	    int Page,
+	    int Count,
+	    string? Title,
+	    DateTime? FromDate,
+	    DateTime? ToDate) : Pagination(Page, Count);
+
     [HttpGet]
-    public async Task<IActionResult> GetBlogs()
+    public async Task<IActionResult> GetBlogs([FromQuery]BlogFilter filter)
     {
-        return Ok(await _blogManager.GetBlogs());
+	    var blogs = await _blogManager.GetBlogs();
+
+	    if (filter.FromDate != null)
+	    {
+		    blogs = blogs.Where(b => b.CreatedDate > filter.FromDate).ToList();
+	    }
+
+	    if (filter.ToDate != null)
+	    {
+		    blogs = blogs.Where(b => b.CreatedDate < filter.ToDate).ToList();
+	    }
+
+	    if (filter.Title != null)
+	    {
+		    blogs = blogs.Where(b => b.Name.Contains(filter.Title)).ToList();
+	    }
+
+		// blogs = blogs.Skip((page - 1) * count).Take(count).ToList();
+		//
+		// Response.Headers.Add("totalpages", (blogs.Count / count).ToString());
+		//
+		// return Ok(blogs);
+
+		// return Ok(blogs.ToPagedList(count));
+
+		return Ok(blogs);
     }
+
 
     [HttpGet("blogId")]
     public async Task<IActionResult> GetBlogById(Guid blogId)
