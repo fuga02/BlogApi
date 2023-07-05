@@ -1,5 +1,4 @@
 ﻿using BlogApi.Context;
-using BlogApi.Managers;
 using BlogApi.Managers.Identity;
 using BlogApi.Options;
 using BlogApi.Providers;
