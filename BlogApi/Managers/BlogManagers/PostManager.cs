@@ -1,6 +1,7 @@
 ﻿using BlogApi.Context;
 using BlogApi.Entities;
 using BlogApi.Models.BlogModels;
+using BlogApi.Providers;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Managers.BlogManagers;
@@ -8,10 +9,12 @@ namespace BlogApi.Managers.BlogManagers;
 public class PostManager
 {
     private readonly BlogDbContext _dbContext;
+    private readonly UserProvider _userProvider;
 
-    public PostManager(BlogDbContext dbContext)
+    public PostManager(BlogDbContext dbContext, UserProvider userProvider)
     {
         _dbContext = dbContext;
+        _userProvider = userProvider;
     }
 
     public async Task<List<PostModel>> GetPosts()
@@ -20,11 +23,12 @@ public class PostManager
         return ParseList(posts);
     }
 
+    /*
     public async Task<List<PostModel>> GetPosts(Guid blogId)
     {
         var posts = await _dbContext.Posts.Where(p => p.BlogId ==  blogId).ToListAsync();
         return ParseList(posts);
-    }
+    }*/
 
     public async Task<PostModel> GetPostById(Guid postId)
     {
@@ -63,19 +67,10 @@ public class PostManager
         return "Done :)";
     }
 
-    public async Task<LikeModel> GetLikes(Guid postId, Guid userId)
-    {
-        var likes = await _dbContext.Likes.Where(l => l.PostId == postId).ToListAsync();
-        var like = likes.FirstOrDefault(l => l.UserId == userId);
-        return  new LikeModel()
-        {
-            IsLiked = like != null,
-            Count = likes.Count
-        };
-    }
 
-    public async Task<Like?> Like(Guid postId, Guid userId)
+    public async Task<Like?> Like(Guid postId)
     {
+        var userId = _userProvider.UserId;
         var like = await  _dbContext.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
         if (like == null)
         {
@@ -97,20 +92,17 @@ public class PostManager
         }
     }
 
-    public async Task<bool> IsSaved(Guid postId, Guid userId)
-    {
-        return await _dbContext.SavedPosts
-            .FirstOrDefaultAsync(s => s.PostId == postId && s.UserId == userId) != null;
-    }
 
-    public async Task<List<SavedPost>> GetSavedPosts(Guid userId)
+    public async Task<List<SavedPost>> GetSavedPosts()
     {
+        var userId = _userProvider.UserId;
         var savedPosts =await  _dbContext.SavedPosts.Where(s => s.UserId == userId).ToListAsync();
         return savedPosts;
     }
 
-    public async Task<SavedPost?> SavePost(Guid postId, Guid userId)
+    public async Task<SavedPost?> SavePost(Guid postId)
     {
+        var userId = _userProvider.UserId;
         var savedPost = await _dbContext.SavedPosts.FirstOrDefaultAsync(s => s.PostId == postId && s.UserId == userId);
         if (savedPost == null)
         {
@@ -132,15 +124,19 @@ public class PostManager
     }
 
 
-    private PostModel ParsePost(Post model)
+    private  PostModel ParsePost(Post model)
     {
+        Tuple<bool,int>like =  GetLikes(model.PostId);
         var postModel = new PostModel()
         {
             PostId = model.PostId,
             Title = model.Title,
             Description = model.Description,
             CreatedDate = model.CreatedDate,
+            IsLiked = like.Item1,
+            LikeCount = like.Item2,
             Likes = model.Likes,
+            IsSaved = IsSaved(model.PostId),
             BlogId = model.BlogId,
             SavedPosts = model.SavedPosts
         };
@@ -162,5 +158,24 @@ public class PostManager
         var post = _dbContext.Posts.FirstOrDefault(p => p.PostId == postId);
         if (post == null) throw new Exception("Not found");
         return post;
+    }
+
+
+
+
+    public bool IsSaved(Guid postId)
+    {
+        var userId = _userProvider.UserId;
+        return _dbContext.SavedPosts
+            .FirstOrDefault(s => s.PostId == postId && s.UserId == userId) != null;
+    }
+
+
+    public Tuple<bool, int> GetLikes(Guid postId)
+    {
+        var userId = _userProvider.UserId;
+        var likes = _dbContext.Likes.Where(l => l.PostId == postId).ToList();
+        var like = likes.FirstOrDefault(l => l.UserId == userId);
+        return new Tuple<bool, int>(like != null, likes.Count);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BlogApi.Context;
 using BlogApi.Entities;
 using BlogApi.Models.BlogModels;
+using BlogApi.Providers;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Managers.BlogManagers;
@@ -8,10 +9,12 @@ namespace BlogApi.Managers.BlogManagers;
 public class BlogManager
 {
     private readonly BlogDbContext _dbContext;
+    private readonly UserProvider _userProvider;
 
-    public BlogManager(BlogDbContext dbContext)
+    public BlogManager(BlogDbContext dbContext, UserProvider userProvider)
     {
         _dbContext = dbContext;
+        _userProvider = userProvider;
     }
 
     public async Task<List<BlogModel>> GetBlogs()
@@ -28,8 +31,9 @@ public class BlogManager
         return ParseToBlogModel(blog);
     }
 
-    public async Task<List<BlogModel>> GetBlogByAuthor(Guid userId)
+    public async Task<List<BlogModel>> GetBlogByAuthor()
     {
+        var userId = _userProvider.UserId;
         var blogs =  await _dbContext.Blogs.Where(b => b.UserId == userId).ToListAsync();
         if (blogs == null) throw new Exception("Not found");
 
@@ -82,17 +86,12 @@ public class BlogManager
             Description = blog.Description,
             CreatedDate = blog.CreatedDate,
             UserId = blog.UserId,
-            UserName = GetUserName(blog.UserId),
+            UserName = _userProvider.UserName,
             Posts = blog.Posts,
         };
         return  blogModel;
     }
-
-    private string GetUserName(Guid userId)
-    {
-        var user = _dbContext.Users.Find(userId);
-        return user!.Username;
-    }
+    
 
     private List<BlogModel> ParseList(List<Blog> blogs)
     {

@@ -2,5 +2,4 @@
 
 public class SavedPostModel
 {
-    public bool IsSaved { get; set; }
 }

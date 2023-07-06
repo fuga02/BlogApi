@@ -30,9 +30,9 @@ public class BlogsController : ControllerBase
     }
 
     [HttpGet("userId")]
-    public async Task<IActionResult> GetBlogByAuthor(Guid userId)
+    public async Task<IActionResult> GetBlogByAuthor()
     {
-        return Ok(await _blogManager.GetBlogByAuthor(userId));
+        return Ok(await _blogManager.GetBlogByAuthor());
     }
 
     [HttpGet("userName")]
