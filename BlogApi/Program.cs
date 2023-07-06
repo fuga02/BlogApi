@@ -3,6 +3,7 @@ using BlogApi.Extensions;
 using BlogApi.Managers.BlogManagers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,8 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
 });
 builder.Services.AddIdentity(builder.Configuration);
 builder.Services.AddScoped<BlogManager>();
-builder.Services.AddScoped<PostManager>();
+builder.Services.AddScoped<PostManager>(); builder.Services.AddControllers().AddJsonOptions(x =>
+    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 var app = builder.Build();
 

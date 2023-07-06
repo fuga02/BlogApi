@@ -23,19 +23,14 @@ public class BlogsController : ControllerBase
         return Ok(await _blogManager.GetBlogs());
     }
 
-    [HttpGet("blogId")]
+    [HttpGet("{blogId}")]
     public async Task<IActionResult> GetBlogById(Guid blogId)
     {
         return Ok(await _blogManager.GetBlogById(blogId));
     }
 
-    [HttpGet("userId")]
-    public async Task<IActionResult> GetBlogByAuthor()
-    {
-        return Ok(await _blogManager.GetBlogByAuthor());
-    }
 
-    [HttpGet("userName")]
+    [HttpGet("{userName}")]
     public async Task<IActionResult> GetBlogByAuthor(string userName)
     {
         return Ok(await _blogManager.GetBlogByAuthor(userName));
@@ -47,13 +42,13 @@ public class BlogsController : ControllerBase
         return Ok(await _blogManager.CreateBlog(model));
     }
 
-    [HttpPut]
+    [HttpPut("{blogId}")]
     public async Task<IActionResult> UpdateBlog(Guid blogId, CreateBlogModel model)
     {
         return Ok(await _blogManager.UpdateBlog(blogId, model));
     }
 
-    [HttpDelete]
+    [HttpDelete("{blogId}")]
     public async Task<IActionResult> DeleteBlog(Guid blogId)
     {
         return Ok(await _blogManager.DeleteBlog(blogId));

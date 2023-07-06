@@ -1,4 +1,5 @@
-﻿using BlogApi.Managers.Identity;
+﻿using BlogApi.Managers.BlogManagers;
+using BlogApi.Managers.Identity;
 using BlogApi.Models;
 using BlogApi.Models.IdentityModels;
 using BlogApi.Providers;
@@ -14,14 +15,16 @@ public class AccountController : ControllerBase
     private readonly UserManager _userManager;
     private ILogger<AccountController> _logger;
     private readonly UserProvider _userProvider;
+    private readonly BlogManager _blogManager;
 
     public AccountController(UserManager userManager, 
         ILogger<AccountController> logger,
-        UserProvider userProvider)
+        UserProvider userProvider, BlogManager blogManager)
     {
         _userManager = userManager;
         _logger = logger;
         _userProvider = userProvider;
+        _blogManager = blogManager;
     }
 
     [HttpPost("register")]
@@ -74,5 +77,12 @@ public class AccountController : ControllerBase
         }
 
         return Ok(new UserModel(user));
+    }
+
+    [HttpGet("{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetBlogByAuthor()
+    {
+        return Ok(await _blogManager.GetBlogByAuthor());
     }
 }

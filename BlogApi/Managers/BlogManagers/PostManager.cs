@@ -68,7 +68,7 @@ public class PostManager
     }
 
 
-    public async Task<Like?> Like(Guid postId)
+    public async Task<Like_Saved_Model?> Like(Guid postId)
     {
         var userId = _userProvider.UserId;
         var like = await  _dbContext.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
@@ -81,7 +81,7 @@ public class PostManager
             };
             _dbContext.Likes.Add(like);
             await _dbContext.SaveChangesAsync();
-            return like;
+            return Parse_Like_Saved_Model(like);
 
         }
         else
@@ -100,7 +100,7 @@ public class PostManager
         return savedPosts;
     }
 
-    public async Task<SavedPost?> SavePost(Guid postId)
+    public async Task<Like_Saved_Model?> SavePost(Guid postId)
     {
         var userId = _userProvider.UserId;
         var savedPost = await _dbContext.SavedPosts.FirstOrDefaultAsync(s => s.PostId == postId && s.UserId == userId);
@@ -113,7 +113,7 @@ public class PostManager
             };
             _dbContext.SavedPosts.Add(savedPost);
             await _dbContext.SaveChangesAsync();
-            return savedPost;
+            return Parse_Like_Saved_Model(savedPost);
         }
         else
         {
@@ -123,6 +123,26 @@ public class PostManager
         }
     }
 
+    private Like_Saved_Model Parse_Like_Saved_Model( SavedPost model )
+    {
+        var savedPostModel = new Like_Saved_Model()
+        {
+            Id = model.Id,
+            PostId = model.PostId,
+            UserId = model.UserId
+        };
+        return savedPostModel;
+    }
+    private Like_Saved_Model Parse_Like_Saved_Model( Like model )
+    {
+        var savedPostModel = new Like_Saved_Model()
+        {
+            Id = model.Id,
+            PostId = model.PostId,
+            UserId = model.UserId
+        };
+        return savedPostModel;
+    }
 
     private  PostModel ParsePost(Post model)
     {

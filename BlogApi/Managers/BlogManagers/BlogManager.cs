@@ -19,7 +19,7 @@ public class BlogManager
 
     public async Task<List<BlogModel>> GetBlogs()
     {
-        var blogs = await _dbContext.Blogs.Include(b => b.Posts).ToListAsync();
+        var blogs = await _dbContext.Blogs.ToListAsync();
 
         return ParseList(blogs);
     }
@@ -54,7 +54,7 @@ public class BlogManager
         {
             Name = model.Name,
             Description = model.Description,
-            UserId = model.UserId
+            UserId = _userProvider.UserId
         };
         _dbContext.Blogs.Add(blog);
         await _dbContext.SaveChangesAsync();
@@ -83,7 +83,7 @@ public class BlogManager
         {
             Id = blog.Id,
             Name = blog.Name,
-            Description = blog.Description,
+            Description = blog.Description!,
             CreatedDate = blog.CreatedDate,
             UserId = blog.UserId,
             UserName = _userProvider.UserName,
