@@ -41,6 +41,14 @@ public class BlogDbContext:DbContext
             .HasMany(p => p.SavedPosts)
             .WithOne(l => l.Post)
             .HasForeignKey(l => l.PostId);
+        modelBuilder.Entity<Post>()
+            .HasMany(p => p.Comments)
+            .WithOne(c => c.Post)
+            .HasForeignKey(c => c.PostId);;
+        modelBuilder.Entity<User>()
+            .HasMany(p => p.Comments)
+            .WithOne(c => c.User)
+            .HasForeignKey(c => c.UserId);
     }
 
     public DbSet<User> Users { get; set; }
@@ -48,4 +56,5 @@ public class BlogDbContext:DbContext
     public DbSet<Post> Posts { get; set; }
     public DbSet<Like> Likes { get; set; }
     public DbSet<SavedPost> SavedPosts { get; set; }
+    public DbSet<Comment> Comments { get; set; }
 }

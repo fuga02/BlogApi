@@ -123,6 +123,49 @@ public class PostManager
         }
     }
 
+
+    public async Task<List<CommentModel>> GetComments()
+    {
+        var comments = await _dbContext.Comments.ToListAsync();
+        return ParseList(comments);
+    }
+
+    public async Task<List<CommentModel>> GetComments(Guid postId)
+    {
+        var comments = await _dbContext.Comments.Where(p => p.PostId == postId).ToListAsync();
+        return ParseList(comments);
+    }
+
+    public async Task<CommentModel> CreateComment(CreateCommentModel model)
+    {
+        var comment = new Comment()
+        {
+            PostId = model.PostId,
+            UserId = _userProvider.UserId,
+            Message = model.Message
+        };
+        _dbContext.Comments.Add(comment);
+        await _dbContext.SaveChangesAsync();
+        return ParseCommentModel(comment);
+    }
+
+    public async Task<CommentModel> UpdateComment(Guid commentId, CreateCommentModel model)
+    {
+        var comment = await IsExistComment(commentId);
+        comment.Message = model.Message;
+        await _dbContext.SaveChangesAsync();
+        return ParseCommentModel(comment);
+    }
+
+    public async Task<string> DeleteComment(Guid commentId)
+    {
+        var comment = await IsExistComment(commentId);
+        _dbContext.Comments.Remove(comment);
+        return "All done :)";
+    }
+
+
+
     private Like_Saved_Model Parse_Like_Saved_Model( SavedPost model )
     {
         var savedPostModel = new Like_Saved_Model()
@@ -173,6 +216,28 @@ public class PostManager
         return postModels;
     }
 
+    private CommentModel ParseCommentModel(Comment model)
+    {
+        return new CommentModel()
+        {
+            Id = model.Id,
+            PostId = model.PostId,
+            UserId = model.UserId,
+            Message = model.Message,
+            CreateDateTime = model.CreateDateTime
+        };
+    }
+
+    private List<CommentModel> ParseList(List<Comment> comments)
+    {
+        var commentModels = new List<CommentModel>();
+        foreach (var comment in comments)
+        {
+            commentModels.Add(ParseCommentModel(comment));
+        }
+        return commentModels;
+    }
+
     private Post IsExist(Guid postId)
     {
         var post = _dbContext.Posts.FirstOrDefault(p => p.PostId == postId);
@@ -180,10 +245,16 @@ public class PostManager
         return post;
     }
 
+    private async Task<Comment> IsExistComment(Guid commentId)
+    {
+        var comment = await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment == null) throw new Exception("Not found");
+        return comment;
+    }
 
 
 
-    public bool IsSaved(Guid postId)
+    private bool IsSaved(Guid postId)
     {
         var userId = _userProvider.UserId;
         return _dbContext.SavedPosts
@@ -191,7 +262,7 @@ public class PostManager
     }
 
 
-    public Tuple<bool, int> GetLikes(Guid postId)
+    private Tuple<bool, int> GetLikes(Guid postId)
     {
         var userId = _userProvider.UserId;
         var likes = _dbContext.Likes.Where(l => l.PostId == postId).ToList();
