@@ -1,11 +1,13 @@
 ﻿using BlogApi.Managers.BlogManagers;
 using BlogApi.Models.BlogModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/blogs/{blogId}/[controller]")]
 [ApiController]
+[Authorize]
 public class PostsController : ControllerBase
 {
     private readonly PostManager _postManager;
@@ -69,4 +71,32 @@ public class PostsController : ControllerBase
     {
         return Ok(await _postManager.SavePost(postId));
     }
+
+    [HttpGet("{postId}/comments")]
+    public async Task<IActionResult> GetPostComments(Guid postId)
+    {
+        return Ok(await _postManager.GetComments(postId));
+    }
+
+    [HttpPost("{postId}/comments")]
+    public async Task<IActionResult> CreateComment(Guid postId, CreateCommentModel model)
+    {
+        return Ok(await _postManager.CreateComment(model));
+    }
+
+    [HttpPut("{postId}/comments/{commentId}")]
+    public async Task<IActionResult> UpdateComment(Guid commentId,CreateCommentModel model)
+    {
+        return Ok(await _postManager.UpdateComment(commentId, model));
+    }
+
+    [HttpDelete("{postId}/comments/{commentId}")]
+    public async Task<IActionResult> DeleteComment(Guid commentId)
+    {
+        return Ok(await _postManager.DeleteComment(commentId));
+    }
+
+
+
+
 }

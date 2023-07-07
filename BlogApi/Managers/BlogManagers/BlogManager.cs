@@ -10,11 +10,13 @@ public class BlogManager
 {
     private readonly BlogDbContext _dbContext;
     private readonly UserProvider _userProvider;
+    private readonly PostManager _postManager;
 
-    public BlogManager(BlogDbContext dbContext, UserProvider userProvider)
+    public BlogManager(BlogDbContext dbContext, UserProvider userProvider, PostManager postManager)
     {
         _dbContext = dbContext;
         _userProvider = userProvider;
+        _postManager = postManager;
     }
 
     public async Task<List<BlogModel>> GetBlogs()
@@ -87,7 +89,7 @@ public class BlogManager
             CreatedDate = blog.CreatedDate,
             UserId = blog.UserId,
             UserName = _userProvider.UserName,
-            Posts = blog.Posts,
+            Posts = _postManager.ParseListPostModel(blog.Posts),
         };
         return  blogModel;
     }

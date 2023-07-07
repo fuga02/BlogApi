@@ -56,13 +56,7 @@ public class BlogsController : ControllerBase
     {
         return Ok(await _blogManager.GetBlogById(blogId));
     }
-
-
-    [HttpGet("{userName}")]
-    public async Task<IActionResult> GetBlogByAuthor(string userName)
-    {
-        return Ok(await _blogManager.GetBlogByAuthor(userName));
-    }
+    
 
     [HttpPost]
     public async Task<IActionResult> CreateBlog(CreateBlogModel model)

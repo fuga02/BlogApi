@@ -20,7 +20,7 @@ public class PostManager
     public async Task<List<PostModel>> GetPosts()
     {
         var posts = await _dbContext.Posts.Include(p => p.Likes).Include(p => p.SavedPosts).ToListAsync();
-        return ParseList(posts);
+        return ParseListPostModel(posts);
     }
 
     /*
@@ -127,13 +127,13 @@ public class PostManager
     public async Task<List<CommentModel>> GetComments()
     {
         var comments = await _dbContext.Comments.ToListAsync();
-        return ParseList(comments);
+        return ParseListCommentModel(comments);
     }
 
     public async Task<List<CommentModel>> GetComments(Guid postId)
     {
         var comments = await _dbContext.Comments.Where(p => p.PostId == postId).ToListAsync();
-        return ParseList(comments);
+        return ParseListCommentModel(comments);
     }
 
     public async Task<CommentModel> CreateComment(CreateCommentModel model)
@@ -187,6 +187,25 @@ public class PostManager
         return savedPostModel;
     }
 
+    private List<Like_Saved_Model> Parse_Like_Saved_Model_List(List<SavedPost> list)
+    {
+        var listModel = new List<Like_Saved_Model>();
+        foreach (var model in list)
+        {
+            listModel.Add(Parse_Like_Saved_Model(model));
+        }
+        return listModel;
+    }
+    private List<Like_Saved_Model> Parse_Like_Saved_Model_List(List<Like> list)
+    {
+        var listModel = new List<Like_Saved_Model>();
+        foreach (var model in list)
+        {
+            listModel.Add(Parse_Like_Saved_Model(model));
+        }
+        return listModel;
+    }
+
     private  PostModel ParsePost(Post model)
     {
         Tuple<bool,int>like =  GetLikes(model.PostId);
@@ -198,15 +217,15 @@ public class PostManager
             CreatedDate = model.CreatedDate,
             IsLiked = like.Item1,
             LikeCount = like.Item2,
-            Likes = model.Likes,
+            Likes = Parse_Like_Saved_Model_List(model.Likes),
             IsSaved = IsSaved(model.PostId),
             BlogId = model.BlogId,
-            SavedPosts = model.SavedPosts
+            SavedPosts = Parse_Like_Saved_Model_List(model.SavedPosts)
         };
 
         return postModel;
     }
-    private List<PostModel> ParseList(List<Post> posts)
+    public List<PostModel> ParseListPostModel(List<Post> posts)
     {
         var postModels = new List<PostModel>();
         foreach (var post in posts)
@@ -228,7 +247,7 @@ public class PostManager
         };
     }
 
-    private List<CommentModel> ParseList(List<Comment> comments)
+    private List<CommentModel> ParseListCommentModel(List<Comment> comments)
     {
         var commentModels = new List<CommentModel>();
         foreach (var comment in comments)

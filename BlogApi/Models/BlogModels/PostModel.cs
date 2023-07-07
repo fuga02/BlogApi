@@ -14,6 +14,6 @@ public class PostModel
     public bool IsSaved { get; set; }
 
     public Guid BlogId { get; set; }
-    public  List<Like> Likes { get; set; }
-    public  List<SavedPost> SavedPosts { get; set; }
+    public  List<Like_Saved_Model> Likes { get; set; }
+    public  List<Like_Saved_Model> SavedPosts { get; set; }
 }
