@@ -64,8 +64,7 @@ public class PostManager
         await _postRepository.DeletePost(post);
         return "Done :)";
     }
-
-
+    
     public async Task<Like_Saved_Model?> Like(Guid postId)
     {
         var userId = _userProvider.UserId;
@@ -73,8 +72,7 @@ public class PostManager
         if (like != null)return Parse_Like_Saved_Model(like);
         return null;
     }
-
-
+    
     public async Task<List<SavedPost>> GetSavedPosts()
     {
         var userId = _userProvider.UserId;
@@ -88,13 +86,13 @@ public class PostManager
         if (savePost != null) return Parse_Like_Saved_Model(savePost);
         return null;
     }
-
-
+    
+    /*
     public async Task<List<CommentModel>> GetComments()
     {
         var comments = await _postRepository.GetComments();
         return ParseListCommentModel(comments);
-    }
+    }*/
 
     public async Task<List<CommentModel>> GetComments(Guid postId)
     {
@@ -129,8 +127,6 @@ public class PostManager
         return "All done :)";
     }
 
-
-
     private Like_Saved_Model Parse_Like_Saved_Model( SavedPost model )
     {
         var savedPostModel = new Like_Saved_Model()
@@ -141,6 +137,7 @@ public class PostManager
         };
         return savedPostModel;
     }
+
     private Like_Saved_Model Parse_Like_Saved_Model( Like model )
     {
         var savedPostModel = new Like_Saved_Model()
@@ -161,6 +158,7 @@ public class PostManager
         }
         return listModel;
     }
+
     private List<Like_Saved_Model> Parse_Like_Saved_Model_List(List<Like> list)
     {
         var listModel = new List<Like_Saved_Model>();
@@ -190,6 +188,7 @@ public class PostManager
 
         return postModel;
     }
+
     public async Task<List<PostModel>> ParseListPostModel(List<Post> posts)
     {
         var postModels = new List<PostModel>();
@@ -236,8 +235,6 @@ public class PostManager
         return comment;
     }
 
-
-
     private async Task<bool> IsSaved(Guid postId)
     {
         var userId = _userProvider.UserId;
@@ -245,8 +242,7 @@ public class PostManager
         return savedPosts.FirstOrDefault(s => s.PostId == postId) != null;
         
     }
-
-
+    
     private async Task<Tuple<bool, int>> GetLikes(Guid postId)
     {
         var userId = _userProvider.UserId;

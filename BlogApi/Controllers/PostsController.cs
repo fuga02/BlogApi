@@ -95,8 +95,5 @@ public class PostsController : ControllerBase
     {
         return Ok(await _postManager.DeleteComment(commentId));
     }
-
-
-
-
+    
 }
