@@ -2,33 +2,34 @@
 using BlogApi.Entities;
 using BlogApi.Models.BlogModels;
 using BlogApi.Providers;
+using BlogApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Managers.BlogManagers;
 
 public class BlogManager
 {
-    private readonly BlogDbContext _dbContext;
     private readonly UserProvider _userProvider;
     private readonly PostManager _postManager;
+    private readonly IBlogRepository _blogRepository;   
 
-    public BlogManager(BlogDbContext dbContext, UserProvider userProvider, PostManager postManager)
+    public BlogManager( UserProvider userProvider, PostManager postManager, IBlogRepository blogRepository)
     {
-        _dbContext = dbContext;
         _userProvider = userProvider;
         _postManager = postManager;
+        _blogRepository = blogRepository;
     }
 
     public async Task<List<BlogModel>> GetBlogs()
     {
-        var blogs = await _dbContext.Blogs.ToListAsync();
+        var blogs = await _blogRepository.GetBlogs();
 
         return ParseList(blogs);
     }
 
     public async Task<BlogModel> GetBlogById(Guid id)
     {
-        var blog = IsExist(id);
+        var blog = await IsExist(id);
 
         return ParseToBlogModel(blog);
     }
@@ -36,19 +37,10 @@ public class BlogManager
     public async Task<List<BlogModel>> GetBlogByAuthor()
     {
         var userId = _userProvider.UserId;
-        var blogs =  await _dbContext.Blogs.Where(b => b.UserId == userId).ToListAsync();
+        var blogs =  await _blogRepository.GetBlogByAuthor(userId);
         if (blogs == null) throw new Exception("Not found");
 
         return  ParseList(blogs);
-    }
-    public async Task<List<BlogModel>> GetBlogByAuthor(string username)
-    {
-        var user =  await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
-        if (user == null) throw new Exception("Not found such kinda user");
-        var blogs = user.Blogs;
-        if (blogs == null) throw new Exception("This user has no blogs");
-
-        return ParseList(blogs);
     }
     public async Task<BlogModel> CreateBlog(CreateBlogModel model)
     {
@@ -58,24 +50,22 @@ public class BlogManager
             Description = model.Description,
             UserId = _userProvider.UserId
         };
-        _dbContext.Blogs.Add(blog);
-        await _dbContext.SaveChangesAsync();
-        return ParseToBlogModel(blog);
+        await _blogRepository.CreateBlog(blog);
+        return ParseToBlogModel(blog);;
     }
     public async Task<BlogModel> UpdateBlog(Guid blogId,CreateBlogModel model)
     {
-        var blog =  IsExist(blogId);
+        var blog =  await IsExist(blogId);
         blog.Name = model.Name;
         blog.Description = model.Description;
-        await _dbContext.SaveChangesAsync();
+        await _blogRepository.UpdateBlog(blog);
         return ParseToBlogModel(blog);
     }
 
     public async Task<string> DeleteBlog(Guid blogId)
     {
-        var blog = IsExist(blogId);
-        _dbContext.Blogs.Remove(blog);
-        await _dbContext.SaveChangesAsync();
+        var blog = await IsExist(blogId);
+        await _blogRepository.DeleteBlog(blog);
         return "Done :)";
     }
 
@@ -105,9 +95,9 @@ public class BlogManager
         return blogModels;
     }
 
-    private Blog IsExist(Guid blogId)
+    private async Task<Blog> IsExist(Guid blogId)
     {
-        var blog =  _dbContext.Blogs.FirstOrDefault(b => b.Id == blogId);
+        var blog =  await _blogRepository.GetBlogById(blogId);
         if (blog == null) throw new Exception("Not found");
         return blog;
     } 
