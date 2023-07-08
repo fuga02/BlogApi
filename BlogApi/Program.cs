@@ -1,6 +1,7 @@
 using BlogApi.Context;
 using BlogApi.Extensions;
 using BlogApi.Managers.BlogManagers;
+using BlogApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -44,6 +45,7 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDb"));
 });
 builder.Services.AddIdentity(builder.Configuration);
+builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<BlogManager>();
 builder.Services.AddScoped<PostManager>(); builder.Services.AddControllers().AddJsonOptions(x =>
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
