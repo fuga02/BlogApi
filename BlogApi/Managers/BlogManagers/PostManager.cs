@@ -1,26 +1,26 @@
-﻿using BlogApi.Context;
-using BlogApi.Entities;
+﻿using BlogApi.Entities;
 using BlogApi.Models.BlogModels;
 using BlogApi.Providers;
+using BlogApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Managers.BlogManagers;
 
 public class PostManager
 {
-    private readonly BlogDbContext _dbContext;
     private readonly UserProvider _userProvider;
+    private readonly IPostRepository _postRepository;
 
-    public PostManager(BlogDbContext dbContext, UserProvider userProvider)
+    public PostManager(UserProvider userProvider, IPostRepository postRepository)
     {
-        _dbContext = dbContext;
         _userProvider = userProvider;
+        _postRepository = postRepository;
     }
 
     public async Task<List<PostModel>> GetPosts()
     {
-        var posts = await _dbContext.Posts.Include(p => p.Likes).Include(p => p.SavedPosts).ToListAsync();
-        return ParseListPostModel(posts);
+        var posts = await _postRepository.GetPosts();
+        return await ParseListPostModel(posts);
     }
 
     /*
@@ -32,8 +32,8 @@ public class PostManager
 
     public async Task<PostModel> GetPostById(Guid postId)
     {
-        var post = IsExist(postId);
-        return ParsePost(post);
+        var post = await IsExist(postId);
+        return await ParsePost(post);
     }
 
     public async Task<PostModel> CreatePost(CreatePostModel model)
@@ -44,26 +44,24 @@ public class PostManager
             Description = model.Description,
             BlogId = model.BlogId
         };
-        _dbContext.Posts.Add(post);
-        await _dbContext.SaveChangesAsync();
-        return ParsePost(post);
+        await _postRepository.CreatePost(post);
+        return await ParsePost(post);
     }
 
     public async Task<PostModel> UpdatePost(Guid postId, CreatePostModel model)
     {
-        var post = IsExist(postId);
+        var post = await IsExist(postId);
         post.Title = model.Title;
         post.Description = model.Description;
         post.UpdatedDate = DateTime.Now;
-        await _dbContext.SaveChangesAsync();
-        return ParsePost(post);
+        await _postRepository.UpdatePost(post);
+        return await ParsePost(post);
     }
 
     public async Task<string> DeletePost(Guid postId)
     {
-        var post = IsExist(postId);
-        _dbContext.Posts.Remove(post);
-        await _dbContext.SaveChangesAsync();
+        var post = await IsExist(postId);
+        await _postRepository.DeletePost(post);
         return "Done :)";
     }
 
@@ -71,68 +69,36 @@ public class PostManager
     public async Task<Like_Saved_Model?> Like(Guid postId)
     {
         var userId = _userProvider.UserId;
-        var like = await  _dbContext.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
-        if (like == null)
-        {
-            like = new Like()
-            {
-                PostId = postId,
-                UserId = userId
-            };
-            _dbContext.Likes.Add(like);
-            await _dbContext.SaveChangesAsync();
-            return Parse_Like_Saved_Model(like);
-
-        }
-        else
-        {
-            _dbContext.Likes.Remove(like);
-            await _dbContext.SaveChangesAsync();
-            return null;
-        }
+        var like =  await _postRepository.Like(postId,userId);
+        if (like != null)return Parse_Like_Saved_Model(like);
+        return null;
     }
 
 
     public async Task<List<SavedPost>> GetSavedPosts()
     {
         var userId = _userProvider.UserId;
-        var savedPosts =await  _dbContext.SavedPosts.Where(s => s.UserId == userId).ToListAsync();
-        return savedPosts;
+        return await _postRepository.GetSavedPosts(userId);
     }
 
     public async Task<Like_Saved_Model?> SavePost(Guid postId)
     {
         var userId = _userProvider.UserId;
-        var savedPost = await _dbContext.SavedPosts.FirstOrDefaultAsync(s => s.PostId == postId && s.UserId == userId);
-        if (savedPost == null)
-        {
-            savedPost = new SavedPost()
-            {
-                PostId = postId,
-                UserId = userId
-            };
-            _dbContext.SavedPosts.Add(savedPost);
-            await _dbContext.SaveChangesAsync();
-            return Parse_Like_Saved_Model(savedPost);
-        }
-        else
-        {
-            _dbContext.SavedPosts.Remove(savedPost);
-            await _dbContext.SaveChangesAsync();
-            return null;
-        }
+        var savePost = await _postRepository.SavePost(postId, userId);
+        if (savePost != null) return Parse_Like_Saved_Model(savePost);
+        return null;
     }
 
 
     public async Task<List<CommentModel>> GetComments()
     {
-        var comments = await _dbContext.Comments.ToListAsync();
+        var comments = await _postRepository.GetComments();
         return ParseListCommentModel(comments);
     }
 
     public async Task<List<CommentModel>> GetComments(Guid postId)
     {
-        var comments = await _dbContext.Comments.Where(p => p.PostId == postId).ToListAsync();
+        var comments = await _postRepository.GetComments(postId);
         return ParseListCommentModel(comments);
     }
 
@@ -144,8 +110,7 @@ public class PostManager
             UserId = _userProvider.UserId,
             Message = model.Message
         };
-        _dbContext.Comments.Add(comment);
-        await _dbContext.SaveChangesAsync();
+        await _postRepository.CreateComment(comment);
         return ParseCommentModel(comment);
     }
 
@@ -153,14 +118,14 @@ public class PostManager
     {
         var comment = await IsExistComment(commentId);
         comment.Message = model.Message;
-        await _dbContext.SaveChangesAsync();
+        await _postRepository.UpdateComment(comment);
         return ParseCommentModel(comment);
     }
 
     public async Task<string> DeleteComment(Guid commentId)
     {
         var comment = await IsExistComment(commentId);
-        _dbContext.Comments.Remove(comment);
+        await _postRepository.DeleteComment(comment);
         return "All done :)";
     }
 
@@ -206,9 +171,9 @@ public class PostManager
         return listModel;
     }
 
-    private  PostModel ParsePost(Post model)
+    private  async Task<PostModel> ParsePost(Post model)
     {
-        Tuple<bool,int>like =  GetLikes(model.PostId);
+        Tuple<bool,int>like =  await GetLikes(model.PostId);
         var postModel = new PostModel()
         {
             PostId = model.PostId,
@@ -218,19 +183,19 @@ public class PostManager
             IsLiked = like.Item1,
             LikeCount = like.Item2,
             Likes = Parse_Like_Saved_Model_List(model.Likes),
-            IsSaved = IsSaved(model.PostId),
             BlogId = model.BlogId,
             SavedPosts = Parse_Like_Saved_Model_List(model.SavedPosts)
         };
+        postModel.IsSaved = await IsSaved(model.PostId);
 
         return postModel;
     }
-    public List<PostModel> ParseListPostModel(List<Post> posts)
+    public async Task<List<PostModel>> ParseListPostModel(List<Post> posts)
     {
         var postModels = new List<PostModel>();
         foreach (var post in posts)
         {
-            postModels.Add(ParsePost(post));
+            postModels.Add(await ParsePost(post));
         }
         return postModels;
     }
@@ -257,34 +222,35 @@ public class PostManager
         return commentModels;
     }
 
-    private Post IsExist(Guid postId)
+    private async Task<Post> IsExist(Guid postId)
     {
-        var post = _dbContext.Posts.FirstOrDefault(p => p.PostId == postId);
+        var post = await _postRepository.GetPostById(postId);
         if (post == null) throw new Exception("Not found");
         return post;
     }
 
     private async Task<Comment> IsExistComment(Guid commentId)
     {
-        var comment = await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+        var comment = await _postRepository.GetCommentById(commentId);
         if (comment == null) throw new Exception("Not found");
         return comment;
     }
 
 
 
-    private bool IsSaved(Guid postId)
+    private async Task<bool> IsSaved(Guid postId)
     {
         var userId = _userProvider.UserId;
-        return _dbContext.SavedPosts
-            .FirstOrDefault(s => s.PostId == postId && s.UserId == userId) != null;
+        var savedPosts = await _postRepository.GetSavedPosts(userId);
+        return savedPosts.FirstOrDefault(s => s.PostId == postId) != null;
+        
     }
 
 
-    private Tuple<bool, int> GetLikes(Guid postId)
+    private async Task<Tuple<bool, int>> GetLikes(Guid postId)
     {
         var userId = _userProvider.UserId;
-        var likes = _dbContext.Likes.Where(l => l.PostId == postId).ToList();
+        var likes = await _postRepository.GetLikes(postId);
         var like = likes.FirstOrDefault(l => l.UserId == userId);
         return new Tuple<bool, int>(like != null, likes.Count);
     }

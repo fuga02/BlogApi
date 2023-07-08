@@ -1,9 +1,7 @@
-﻿using BlogApi.Context;
-using BlogApi.Entities;
+﻿using BlogApi.Entities;
 using BlogApi.Models.BlogModels;
 using BlogApi.Providers;
 using BlogApi.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Managers.BlogManagers;
 
@@ -24,14 +22,14 @@ public class BlogManager
     {
         var blogs = await _blogRepository.GetBlogs();
 
-        return ParseList(blogs);
+        return await ParseList(blogs);
     }
 
     public async Task<BlogModel> GetBlogById(Guid id)
     {
         var blog = await IsExist(id);
 
-        return ParseToBlogModel(blog);
+        return await ParseToBlogModel(blog);
     }
 
     public async Task<List<BlogModel>> GetBlogByAuthor()
@@ -40,7 +38,7 @@ public class BlogManager
         var blogs =  await _blogRepository.GetBlogByAuthor(userId);
         if (blogs == null) throw new Exception("Not found");
 
-        return  ParseList(blogs);
+        return  await ParseList(blogs);
     }
     public async Task<BlogModel> CreateBlog(CreateBlogModel model)
     {
@@ -51,7 +49,7 @@ public class BlogManager
             UserId = _userProvider.UserId
         };
         await _blogRepository.CreateBlog(blog);
-        return ParseToBlogModel(blog);;
+        return await ParseToBlogModel(blog);;
     }
     public async Task<BlogModel> UpdateBlog(Guid blogId,CreateBlogModel model)
     {
@@ -59,7 +57,7 @@ public class BlogManager
         blog.Name = model.Name;
         blog.Description = model.Description;
         await _blogRepository.UpdateBlog(blog);
-        return ParseToBlogModel(blog);
+        return await ParseToBlogModel(blog);
     }
 
     public async Task<string> DeleteBlog(Guid blogId)
@@ -69,7 +67,7 @@ public class BlogManager
         return "Done :)";
     }
 
-    private BlogModel ParseToBlogModel(Blog blog)
+    private async Task<BlogModel> ParseToBlogModel(Blog blog)
     {
         var blogModel = new BlogModel()
         {
@@ -79,18 +77,18 @@ public class BlogManager
             CreatedDate = blog.CreatedDate,
             UserId = blog.UserId,
             UserName = _userProvider.UserName,
-            Posts = _postManager.ParseListPostModel(blog.Posts),
+            Posts = await _postManager.ParseListPostModel(blog.Posts),
         };
         return  blogModel;
     }
     
 
-    private List<BlogModel> ParseList(List<Blog> blogs)
+    private async Task<List<BlogModel>> ParseList(List<Blog> blogs)
     {
         var blogModels = new List<BlogModel>();
         foreach (var blog in blogs)
         {
-            blogModels.Add(ParseToBlogModel(blog));
+            blogModels.Add(await ParseToBlogModel(blog));
         }
         return blogModels;
     }
