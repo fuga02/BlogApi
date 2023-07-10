@@ -1,9 +1,6 @@
 ﻿using BlogApi.Context;
 using BlogApi.Entities;
-using BlogApi.Models.BlogModels;
-using BlogApi.Providers;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata;
 
 namespace BlogApi.Repositories;
 

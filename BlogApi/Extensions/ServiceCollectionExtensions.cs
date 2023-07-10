@@ -44,9 +44,10 @@ public static  class ServiceCollectionExtensions
 
     public static void MigrateBlogDb (this WebApplication app)
     {
-        if (app.Services.GetService<BlogDbContext>() != null)
+        var scope = app.Services.CreateScope();
+        if (scope.ServiceProvider.GetService<BlogDbContext>() != null)
         {
-            var blogDbContext = app.Services.GetRequiredService<BlogDbContext>();
+            var blogDbContext = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
             blogDbContext.Database.Migrate();
         }
     }

@@ -38,12 +38,14 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddDbContext<BlogDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("IdentityDb"));
 });
+
 builder.Services.AddIdentity(builder.Configuration);
 
 
@@ -61,7 +63,7 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
 ;
-app.MigrateBlogDb();
+ app.MigrateBlogDb();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 
@@ -70,3 +72,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program{
+    
+}
