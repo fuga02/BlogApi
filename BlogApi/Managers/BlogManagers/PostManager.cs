@@ -2,7 +2,6 @@
 using BlogApi.Models.BlogModels;
 using BlogApi.Providers;
 using BlogApi.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Managers.BlogManagers;
 
