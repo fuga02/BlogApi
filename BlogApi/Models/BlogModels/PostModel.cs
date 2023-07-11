@@ -16,4 +16,5 @@ public class PostModel
     public Guid BlogId { get; set; }
     public  List<Like_Saved_Model> Likes { get; set; }
     public  List<Like_Saved_Model> SavedPosts { get; set; }
+    public List<CommentModel> Comments { get; set; }
 }

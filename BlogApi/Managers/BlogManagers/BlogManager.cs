@@ -93,7 +93,7 @@ public class BlogManager
         return blogModels;
     }
 
-    private async Task<Blog> IsExist(Guid blogId)
+    public async Task<Blog> IsExist(Guid blogId)
     {
         var blog =  await _blogRepository.GetBlogById(blogId);
         if (blog == null) throw new Exception("Not found");

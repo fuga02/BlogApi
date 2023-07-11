@@ -59,4 +59,10 @@ public class BlogRepository : IBlogRepository
         _dbContext.Blogs.Remove(blog);
         await _dbContext.SaveChangesAsync();
     }
+    public async Task<Blog> IsExist(Guid blogId)
+    {
+        var blog = await GetBlogById(blogId);
+        if (blog == null) throw new Exception("Not found");
+        return blog;
+    }
 }
