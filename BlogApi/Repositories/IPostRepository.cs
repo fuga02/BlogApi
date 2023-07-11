@@ -1,39 +1,37 @@
 ﻿using BlogApi.Context;
 using BlogApi.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogApi.Repositories;
 
 public interface IPostRepository
 {
-     Task<List<Post>> GetPosts();
+     Task<List<Post>> GetPosts(Guid blogId);
     
-     Task<Post?> GetPostById(Guid postId);
+     Task<Post> GetPostById(Guid blogId,Guid postId);
 
-     Task CreatePost(Post post);
+     Task CreatePost(Guid blogId,Post post);
     
-     Task UpdatePost(Post post);
+     Task UpdatePost(Guid blogId,Post post);
 
-     Task DeletePost(Post post);
+     Task DeletePost(Guid blogId, Post post);
 
-     Task<List<Like>> GetLikes(Guid postId);
+     Task<List<Like>> GetLikes(Guid blogId,Guid postId);
 
-     Task<Like?> Like(Guid postId, Guid userId);
+     Task<Like?> Like(Guid blogId,Guid postId, Guid userId);
     
-     Task<List<SavedPost>> GetSavedPosts(Guid userId);
+     Task<List<SavedPost>> GetSavedPosts(Guid blogId,Guid postId , Guid userId);
     
-     Task<SavedPost?> SavePost(Guid postId, Guid userId);
+     Task<SavedPost?> SavePost(Guid blogId, Guid postId, Guid userId);
     
-     Task<List<Comment>> GetComments();
-
-     Task<List<Comment>> GetComments(Guid postId);
-
-     Task CreateComment(Comment comment);
-
-     Task UpdateComment(Comment comment);
+     Task<List<Comment>> GetComments(Guid blogId, Guid postId);
     
-     Task DeleteComment(Comment comment);
-     Task<Comment?> GetCommentById(Guid commentId);
+
+     Task CreateComment(Guid blogId,Guid postId, Comment comment);
+
+     Task UpdateComment(Guid blogId,Guid postId, Comment comment);
+    
+     Task DeleteComment(Guid blogId,Guid postId, Comment comment);
+     Task<Comment?> GetCommentById(Guid blogId,Guid postId, Guid commentId);
 
 
 
@@ -42,49 +40,60 @@ public interface IPostRepository
 public class PostRepository: IPostRepository
 {
     private readonly BlogDbContext _dbContext;
+    private readonly IBlogRepository _blogRepository;
 
-    public PostRepository(BlogDbContext dbContext)
+    public PostRepository(BlogDbContext dbContext, IBlogRepository blogRepository)
     {
         _dbContext = dbContext;
+        _blogRepository = blogRepository;
     }
 
-    public async Task<List<Post>> GetPosts()
+    public async Task<List<Post>> GetPosts(Guid blogId)
     {
-        return await _dbContext.Posts.Include(p => p.Likes).ToListAsync();
+        var blog = await GetBlogById(blogId);
+        return blog.Posts;
     }
 
-    public async Task<Post?> GetPostById(Guid postId)
+    public async Task<Post> GetPostById(Guid blogId, Guid postId)
     {
-        return await _dbContext.Posts.FirstOrDefaultAsync(p => p.PostId == postId);
+        var blog = await GetBlogById(blogId);
+        return await GetPostByBlog(blog,postId);
     }
 
-    public async Task CreatePost(Post post)
+    public async Task CreatePost(Guid blogId, Post post)
     {
+        var blog = await GetBlogById(blogId);
         _dbContext.Posts.Add(post);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task UpdatePost(Post post)
+    public async Task UpdatePost(Guid blogId, Post post)
     {
+        var blog = await GetBlogById(blogId);
         _dbContext.Posts.Update(post);
         await _dbContext.SaveChangesAsync();
+        
     }
 
-    public async Task DeletePost(Post post)
+    public async Task DeletePost(Guid blogId, Post post)
     {
+        var blog = await GetBlogById(blogId);
         _dbContext.Posts.Remove(post);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<Like>> GetLikes(Guid postId)
+    public async Task<List<Like>> GetLikes(Guid blogId,Guid postId)
     {
-        return _dbContext.Likes.Where(l => l.PostId == postId).ToList();
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog,postId);
+        return post.Likes;
     }
 
-    public async Task<Like?> Like(Guid postId, Guid userId)
+    public async Task<Like?> Like(Guid blogId,Guid postId, Guid userId)
     {
-
-        var like = await _dbContext.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog,postId);
+        var like = post.Likes.FirstOrDefault(l => l.PostId == postId && l.UserId == userId);
         if (like == null)
         {
             like = new Like()
@@ -103,16 +112,21 @@ public class PostRepository: IPostRepository
             await _dbContext.SaveChangesAsync();
             return null;
         }
+
     }
 
-    public async Task<List<SavedPost>> GetSavedPosts(Guid userId)
+    public async Task<List<SavedPost>> GetSavedPosts(Guid blogId,Guid postId, Guid userId)
     {
-        return  await _dbContext.SavedPosts.Where(s => s.UserId == userId).ToListAsync();
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog,postId);
+        return post.SavedPosts.Where(s => s.UserId == userId).ToList();
     }
 
-    public async Task<SavedPost?> SavePost(Guid postId, Guid userId)
+    public async Task<SavedPost?> SavePost(Guid blogId, Guid postId, Guid userId)
     {
-        var savedPost = await _dbContext.SavedPosts.FirstOrDefaultAsync(s => s.PostId == postId && s.UserId == userId);
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog, postId);
+        var savedPost = post.SavedPosts.FirstOrDefault(s => s.PostId == postId && s.UserId == userId);
         if (savedPost == null)
         {
             savedPost = new SavedPost()
@@ -131,36 +145,56 @@ public class PostRepository: IPostRepository
             return null;
         }
     }
+    
 
-    public async Task<List<Comment>> GetComments()
+    public async Task<List<Comment>> GetComments(Guid blogId,Guid postId)
     {
-        return await _dbContext.Comments.ToListAsync();
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog, postId);
+        return  post.Comments.Where(p => p.PostId == postId).ToList();
     }
 
-    public async Task<List<Comment>> GetComments(Guid postId)
+    public async Task CreateComment(Guid blogId,Guid postId, Comment comment)
     {
-        return await _dbContext.Comments.Where(p => p.PostId == postId).ToListAsync();
-    }
-
-    public async Task CreateComment(Comment comment)
-    {
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog, postId);
         _dbContext.Comments.Add(comment);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task UpdateComment(Comment comment)
+    public async Task UpdateComment(Guid blogId, Guid postId,Comment comment)
     {
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog, postId);
         _dbContext.Comments.Update(comment);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteComment(Comment comment)
+    public async Task DeleteComment(Guid blogId, Guid postId,Comment comment)
     {
-         _dbContext.Comments.Remove(comment);
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog, postId);
+        _dbContext.Comments.Remove(comment);
         await _dbContext.SaveChangesAsync();
     }
-    public async Task<Comment?> GetCommentById(Guid commentId)
+    public async Task<Comment?> GetCommentById(Guid blogId, Guid postId,Guid commentId)
     {
-        return await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+        var blog = await GetBlogById(blogId);
+        var post = await GetPostByBlog(blog, postId);
+        return post.Comments.FirstOrDefault(c => c.Id == commentId);
+    }
+
+    private async Task<Blog> GetBlogById(Guid blogId)
+    {
+        var blog = await _blogRepository.GetBlogById(blogId);
+        if (blog != null) return blog;
+        throw new Exception("Blog Not found");
+    }
+
+    private async Task<Post> GetPostByBlog(Blog blog, Guid postId)
+    {
+        var post = blog.Posts.FirstOrDefault(p => p.PostId == postId);
+        if (post != null) return post;
+        throw new Exception("Post Not found");
     }
 }
