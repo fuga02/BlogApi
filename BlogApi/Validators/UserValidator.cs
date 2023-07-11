@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using BlogApi.Entities;
+﻿using BlogApi.Entities;
 using FluentValidation;
 
 namespace BlogApi.Validators;
