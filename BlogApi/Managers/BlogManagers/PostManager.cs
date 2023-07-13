@@ -18,7 +18,7 @@ public class PostManager
     public async Task<List<PostModel>?> GetPosts(Guid blogId)
     {
         var posts = await _postRepository.GetPosts(blogId);
-        return await ParseListPostModel(posts);
+        return await ParseModelList(posts);
     }
 
     /*
@@ -31,7 +31,7 @@ public class PostManager
     public async Task<PostModel> GetPostById(Guid blogId, Guid postId)
     {
         var post = await IsExist(blogId, postId);
-        return await ParsePost(post);
+        return await ParseModel(post);
     }
 
     public async Task<PostModel> CreatePost(Guid blogId,CreatePostModel model)
@@ -43,7 +43,7 @@ public class PostManager
             BlogId = blogId
         };
         await _postRepository.CreatePost(blogId,post);
-        return await ParsePost(post);
+        return await ParseModel(post);
     }
 
     public async Task<PostModel> UpdatePost(Guid blogId,Guid postId, CreatePostModel model)
@@ -54,7 +54,7 @@ public class PostManager
         post.BlogId = blogId;
         post.UpdatedDate = DateTime.Now;
         await _postRepository.UpdatePost(blogId,post);
-        return await ParsePost(post);
+        return await ParseModel(post);
     }
 
     public async Task<string> DeletePost(Guid blogId, Guid postId)
@@ -68,7 +68,7 @@ public class PostManager
     {
         var userId = _userProvider.UserId;
         var like =  await _postRepository.Like(blogId,postId,userId);
-        if (like != null)return Parse_Like_Saved_Model(like);
+        if (like != null)return ParseModel(like);
         return null;
     }
     
@@ -82,7 +82,7 @@ public class PostManager
     {
         var userId = _userProvider.UserId;
         var savePost = await _postRepository.SavePost(blogId,postId, userId);
-        if (savePost != null) return Parse_Like_Saved_Model(savePost);
+        if (savePost != null) return ParseModel(savePost);
         return null;
     }
     
@@ -96,7 +96,7 @@ public class PostManager
     public async Task<List<CommentModel>> GetComments(Guid blogId, Guid postId)
     {
         var comments = await _postRepository.GetComments(blogId,postId);
-        return ParseListCommentModel(comments);
+        return ParseModelList(comments);
     }
 
     public async Task<CommentModel> CreateComment(Guid blogId,Guid postId,CreateCommentModel model)
@@ -110,7 +110,7 @@ public class PostManager
             Message = model.Message
         };
         await _postRepository.CreateComment(blogId,postId,comment);
-        return ParseCommentModel(comment);
+        return ParseModel(comment);
     }
 
     public async Task<CommentModel> UpdateComment(Guid blogId,Guid postId,Guid commentId, CreateCommentModel model)
@@ -118,7 +118,7 @@ public class PostManager
         var comment = await IsExistComment(blogId, postId, commentId);
         comment.Message = model.Message;
         await _postRepository.UpdateComment(blogId,postId,comment);
-        return ParseCommentModel(comment);
+        return ParseModel(comment);
     }
 
     public async Task<string> DeleteComment(Guid blogId, Guid postId,Guid commentId)
@@ -128,7 +128,7 @@ public class PostManager
         return "All done :)";
     }
 
-    private Like_Saved_Model Parse_Like_Saved_Model( SavedPost model )
+    private Like_Saved_Model ParseModel( SavedPost model )
     {
         var savedPostModel = new Like_Saved_Model()
         {
@@ -139,7 +139,7 @@ public class PostManager
         return savedPostModel;
     }
 
-    private Like_Saved_Model Parse_Like_Saved_Model( Like model )
+    private Like_Saved_Model ParseModel( Like model )
     {
         var savedPostModel = new Like_Saved_Model()
         {
@@ -150,27 +150,27 @@ public class PostManager
         return savedPostModel;
     }
 
-    private List<Like_Saved_Model> Parse_Like_Saved_Model_List(List<SavedPost> list)
+    private List<Like_Saved_Model> ParseModelList(List<SavedPost> list)
     {
         var listModel = new List<Like_Saved_Model>();
         foreach (var model in list)
         {
-            listModel.Add(Parse_Like_Saved_Model(model));
+            listModel.Add(ParseModel(model));
         }
         return listModel;
     }   
 
-    private List<Like_Saved_Model> Parse_Like_Saved_Model_List(List<Like> list)
+    private List<Like_Saved_Model> ParseModelList(List<Like> list)
     {
         var listModel = new List<Like_Saved_Model>();
         foreach (var model in list)
         {
-            listModel.Add(Parse_Like_Saved_Model(model));
+            listModel.Add(ParseModel(model));
         }
         return listModel;
     }
 
-    private  async Task<PostModel> ParsePost(Post model)
+    private  async Task<PostModel> ParseModel(Post model)
     {
         Tuple<bool,int>like =  await GetLikes(model.BlogId,model.PostId);
         var postModel = new PostModel()
@@ -181,31 +181,31 @@ public class PostManager
             CreatedDate = model.CreatedDate,
             IsLiked = like.Item1,
             LikeCount = like.Item2,
-            Likes = Parse_Like_Saved_Model_List(model.Likes),
+            Likes = ParseModelList(model.Likes),
             BlogId = model.BlogId,
-            SavedPosts = Parse_Like_Saved_Model_List(model.SavedPosts),
-            Comments = ParseListCommentModel(model.Comments)
+            SavedPosts = ParseModelList(model.SavedPosts),
+            Comments = ParseModelList(model.Comments)
         };
         postModel.IsSaved = await IsSaved(model.BlogId, model.PostId);
 
         return postModel;
     }
 
-    public async Task<List<PostModel>?> ParseListPostModel(List<Post>? posts)
+    public async Task<List<PostModel>?> ParseModelList(List<Post>? posts)
     {
         var postModels = new List<PostModel>();
         if (posts != null)
         {
             foreach (var post in posts)
             {
-                postModels.Add(await ParsePost(post));
+                postModels.Add(await ParseModel(post));
             }
             return postModels;
         }
         return null;
     }
 
-    private CommentModel ParseCommentModel(Comment model)
+    private CommentModel ParseModel(Comment model)
     {
         return new CommentModel()
         {
@@ -217,12 +217,12 @@ public class PostManager
         };
     }
 
-    private List<CommentModel> ParseListCommentModel(List<Comment> comments)
+    private List<CommentModel> ParseModelList(List<Comment> comments)
     {
         var commentModels = new List<CommentModel>();
         foreach (var comment in comments)
         {
-            commentModels.Add(ParseCommentModel(comment));
+            commentModels.Add(ParseModel(comment));
         }
         return commentModels;
     }
