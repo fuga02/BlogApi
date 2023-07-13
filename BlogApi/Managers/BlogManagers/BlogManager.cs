@@ -77,7 +77,7 @@ public class BlogManager
             CreatedDate = blog.CreatedDate,
             UserId = blog.UserId,
             UserName = _userProvider.UserName,
-            Posts = await _postManager.ParseListPostModel(blog.Posts),
+            Posts = (await _postManager.ParseModelList(blog.Posts))!,
         };
         return  blogModel;
     }
