@@ -1,5 +1,9 @@
 # BlogApi
 
+# Endpoints
+```PM
+v1
+
 GET     blogs
 POST    blogs
 GET  	blogs/{blogId}
