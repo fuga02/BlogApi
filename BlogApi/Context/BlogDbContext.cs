@@ -50,8 +50,7 @@ public class BlogDbContext:DbContext
             .WithOne(c => c.User)
             .HasForeignKey(c => c.UserId);
 
-
-        modelBuilder.Entity<User>().ToView("users_data");
+        
     }
 
     public DbSet<User> Users { get; set; }
