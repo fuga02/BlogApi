@@ -4,10 +4,10 @@
 ```PM
 v1
 
-POST    Account/register
-POST    Account/login
+POST   Account/register
+POST   Account/login
 GET  	 Account/profile
-GET     Account{user_id}
+GET    Account{user_id}
 
 GET     blogs
 POST    blogs
