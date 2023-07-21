@@ -81,8 +81,8 @@ public class AccountController : ControllerBase
 
     [HttpGet("{userId}")]
     [Authorize]
-    public async Task<IActionResult> GetBlogByAuthor()
+    public async Task<IActionResult> GetUser(Guid userId)
     {
-        return Ok(await _blogManager.GetBlogByAuthor());
+        return Ok(await _userManager.GetUser(userId));
     }
 }
