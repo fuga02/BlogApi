@@ -6,7 +6,7 @@ v1
 
 POST    Account/register
 POST    Account/login
-GET  	  Account/profile
+GET  	 Account/profile
 GET     Account{user_id}
 
 GET     blogs
