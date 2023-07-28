@@ -63,7 +63,7 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
 ;
- //app.MigrateBlogDb();
+app.MigrateBlogDb();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 
